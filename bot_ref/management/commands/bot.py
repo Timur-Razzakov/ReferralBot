@@ -12,6 +12,7 @@ from bot_ref.handlers.update_password import update_password_handlers_register
 from bot_ref.handlers.user_login import login_handlers_register
 from bot_ref.keyboards import default_kb
 from bot_ref.loader import dp, bot
+from bot_ref.handlers.menu_start_command import bot_commands_handlers_register
 
 
 async def on_startup(_):
@@ -21,11 +22,11 @@ async def on_startup(_):
 # Запуск бота, обязательно management -> commands -> название -> создание класса Command(BaseCommand)
 # my_router = Router(name=__name__) # перенёс в heandler ->authorization.py
 
-
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
         logging.basicConfig(level=logging.DEBUG)
+        bot_commands_handlers_register(dp)
         default_handlers_register(dp)
         authorization_handlers_register(dp)
         login_handlers_register(dp)
