@@ -5,3 +5,4 @@
 *.pyc
 *.session
 logs/*.log
+/bot_ref/handlers/binance.py
