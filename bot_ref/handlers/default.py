@@ -1,11 +1,12 @@
 from aiogram import types, Router, F
-from aiogram.filters import Command, CommandObject
+from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.fsm.context import FSMContext
 from asgiref.sync import sync_to_async
+from django.db import router
 
 from bot_ref.handlers.check_data import check_user_chat_id, my_router
 from bot_ref.keyboards import sign_inup_kb, default_kb
-from bot_ref.loader import bot
+from bot_ref.loader import bot, dp
 
 HELP_TEXT = """
 Привет 👋, я бот по продаже различных товаров! У нас есть такие команды как:
@@ -41,7 +42,7 @@ def get_user_referral(user_id):
 
 
 # Сделан дефолтный хендлер
-# @dp.message_handler(commands='start')
+@dp.message(CommandStart())
 async def cmd_start(message: types.Message, command: CommandObject, state: FSMContext):
     # await find_user_transaction()
     user_id = message.chat.id
@@ -84,6 +85,6 @@ async def cmd_description(message: types.Message):
 
 
 def default_handlers_register(router: Router) -> None:
-    router.message.register(cmd_start, Command(commands='start'))
+    router.message.register(cmd_start)
     router.message.register(cmd_help, F.text == 'Помощь ⭐️')
     router.message.register(cmd_description, F.text == 'Описание 📌')
