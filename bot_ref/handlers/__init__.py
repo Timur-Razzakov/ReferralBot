@@ -2,3 +2,4 @@ from .default import default_handlers_register
 from .authorization import authorization_handlers_register
 from .user_login import login_handlers_register
 from .update_password import update_password_handlers_register
+from .menu_start_command import setup_bot_commands
