@@ -1,9 +1,10 @@
 import logging
 
 from aiogram import types
+from aiogram.types import BotCommand
 from django.core.management import BaseCommand
 
-from bot_ref.handlers import default_handlers_register
+from bot_ref.handlers import default_handlers_register, bot_commands
 from bot_ref.handlers.admin import admin_handlers_register
 from bot_ref.handlers.authorization import my_router, authorization_handlers_register
 from bot_ref.handlers.check_paid import check_paid_handlers_register
@@ -12,7 +13,6 @@ from bot_ref.handlers.update_password import update_password_handlers_register
 from bot_ref.handlers.user_login import login_handlers_register
 from bot_ref.keyboards import default_kb
 from bot_ref.loader import dp, bot
-from bot_ref.handlers.menu_start_command import bot_commands_handlers_register
 
 
 async def on_startup(_):
@@ -23,10 +23,9 @@ async def on_startup(_):
 # my_router = Router(name=__name__) # перенёс в heandler ->authorization.py
 
 class Command(BaseCommand):
+    logging.basicConfig(level=logging.DEBUG)
 
     def handle(self, *args, **options):
-        logging.basicConfig(level=logging.DEBUG)
-        bot_commands_handlers_register(dp)
         default_handlers_register(dp)
         authorization_handlers_register(dp)
         login_handlers_register(dp)
@@ -34,6 +33,12 @@ class Command(BaseCommand):
         referral_handlers_register(dp)
         admin_handlers_register(dp)
         check_paid_handlers_register(dp)
+
+        async def setup_bot_commands():
+            commands_for_bot = []
+            for cmd in bot_commands:
+                commands_for_bot.append(BotCommand(command=cmd[0], description=cmd[1]))
+            await bot.set_my_commands(commands=commands_for_bot)
 
         @my_router.message()
         async def unknown_text(message: types.Message):

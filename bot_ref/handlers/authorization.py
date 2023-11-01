@@ -103,11 +103,16 @@ async def process_username(message: types.Message, state: FSMContext):
 @my_router.message(AuthState.phone_number)
 async def process_phone_number(message: types.Message, state: FSMContext):
     phone_number = message.text
-    user_id = message.chat.id
-    user = await get_user_for_registration(user_id)
-    user.phone_number = phone_number
-    await message.answer("Теперь напиши пароль ✍️", reply_markup=markup)
-    await state.set_state(AuthState.user_password)
+    if re.match('\+[0-9]+$', phone_number) and len(phone_number) == 13:
+        user_id = message.chat.id
+        user = await get_user_for_registration(user_id)
+        user.phone_number = phone_number
+        await message.answer("Теперь напиши пароль ✍️", reply_markup=markup)
+        await state.set_state(AuthState.user_password)
+    else:
+        await message.answer("Ваш номер должен начинаться с + и  равен 13 значениям\n"
+                             "Попробуйте еще раз ↩️!", reply_markup=markup)
+        await state.set_state(AuthState.phone_number)
 
 
 @my_router.message(AuthState.user_password)
@@ -136,7 +141,6 @@ async def process_password_2(message: types.Message, state: FSMContext):
     user = await get_user_for_registration(user_id)
     user.repeat_password = password_2
     if user.user_password == user.repeat_password:
-
         await save_user(binance_id=user.binance_id,
                         user_password=user.user_password,
                         user_id=user.user_id,
@@ -146,9 +150,9 @@ async def process_password_2(message: types.Message, state: FSMContext):
         referrals = await get_user_referral(user_id)
         if referrals.sender_link_id and referrals.user_id:
             # получаем пользователей через user_id
-            user = await get_user(referrals.sender_link_id)
+            sender_user = await get_user(referrals.sender_link_id)
             referral = await get_user(referrals.user_id)
-            await create_referral(user.pk, referral)
+            await create_referral(sender_user.pk, referral)
             await state.clear()
             await bot.send_message(referrals.sender_link_id,
                                    text=f'У вас появился реферал по имени: {user.user_name}')

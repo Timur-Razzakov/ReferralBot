@@ -18,4 +18,4 @@ markup_cancel_forgot_password = ReplyKeyboardMarkup(keyboard=[
     ],
 ],
     resize_keyboard=True,
-    one_time_keyboard=True)
+    one_time_keyboard=True,)

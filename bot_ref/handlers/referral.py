@@ -75,6 +75,7 @@ def get_user(user_id):
 def get_referrals(user_id):
     # Получить рефералов пользователя
     referrals = Referral.objects.filter(user_id=user_id).select_related('referral')
+
     # Создайте список словарей с информацией о рефералах
     referral_info = [
         {

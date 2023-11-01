@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from asgiref.sync import sync_to_async
 from tabulate import tabulate
 
-from bot_ref.keyboards import sign_inup_kb, admin_kb, default_kb
+from bot_ref.keyboards import sign_inup_kb, admin_kb, default_kb, paid_ikb
 from bot_ref.loader import bot, dp
 from bot_ref.models import User
 from config import settings as config
@@ -89,35 +89,21 @@ async def cmd_help_admin(message: types.Message):
 
 @my_router.message(F.text == 'Статистика')
 async def get_statistika(message: types.Message):
-    # user_id = message.chat.id
+    user_id = message.chat.id
     # if await check_login(user_id):
     #     if user_id in admins_id:
     all_users = await get_all_users_with_referrals()
-    # print(all_users)
-    for user_id, data in all_users.items():
-        print(user_id)
-        print('---------------------------------------')
-        print(data)
-    data = [
-        [1, "John", "2023-10-27", 1001, 50],
-        [2, "Alice", "2023-10-27", 1002, 0],
-        [3, "Bob", "2023-10-27", 1003, 25],
-        [4, "Eve", "2023-10-28", 1004, 0],
-        [1, "John", "2023-10-27", 1005, 75],
-    ]
+    for key in all_users.keys():
+        user_info = all_users[key]['user_info']
+        info_string = f"🆔 {user_info['pk']}\n Username: {user_info['username']}\n Binance ID: {user_info['binance_id']}\n Is active: {user_info['is_active']}\n Payment count: {user_info['count_payment']}\n\nReferrals:\n"
+        if len(all_users[key]['referrals']) == 0:
+            info_string += "No Referrals\n\n"
+        else:
+            for i in range(len(all_users[key]['referrals'])):
+                ref = all_users[key]['referrals'][i]
+                info_string += f"\n🔗 Referral {i + 1}:\n Username: {ref['username']}\n Binance ID: {ref['binance_id']}\n Is active: {ref['is_active']}\n\n"
+        await bot.send_message(user_id, info_string, parse_mode='Markdown', reply_markup=None)
 
-    # Добавим информацию о рефералах для каждого пользователя
-    data_with_referrals = [
-        [user, name, date, id, payment]
-        for user, name, date, id, payment in data
-    ]
-
-    # Заголовки столбцов
-    headers = ["user", "name", "date", "id", "payment"]
-
-    # Форматирование и вывод таблицы
-    table = tabulate(data_with_referrals, headers, tablefmt="fancy_grid")
-    await message.answer(table)
     # message_text = "<b>Информация о рефералах:</b>\n"
     # for user_id, data in all_users.items():
     #     user_info = data['user_info']

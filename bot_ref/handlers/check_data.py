@@ -36,6 +36,7 @@ def check_active_user(chat_id):
     return User.objects.filter(user_id=chat_id, is_active=True).exists()
 
 
+
 @sync_to_async
 def update_user_password(binance_id, password):
     user = User.objects.filter(binance_id=binance_id).update(user_password=make_password(password))

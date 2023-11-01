@@ -3,26 +3,32 @@ from aiogram.fsm.context import FSMContext
 from asgiref.sync import sync_to_async
 from django.contrib.sites import requests
 
-from bot_ref.keyboards import paid_ikb, sign_inup_kb, admin_kb
+from bot_ref.keyboards import paid_ikb, sign_inup_kb, admin_kb, default_kb
 from bot_ref.loader import bot, dp
 from config import settings as config
+from .admin import check_login
 from .authorization import my_router
-from .check_data import update_user_is_active
+from .check_data import update_user_is_active, check_active_user
 from .referral import get_user
 from ..models import User
 
+
 @my_router.message(F.text == 'Оплатил 🤑')
 async def cmd_check_paid(message: types.Message):
-    # user_id = message.chat.id
-    # if await check_login(user_id):
-    help_text = "<b>Заметка:</b>\n"
-    help_text += ('После совершения оплаты, вы должны нажать на эту кнопку. После проверки, '
-                  'мы активируем ваш аккаунт!')
-    await bot.send_message(chat_id=message.chat.id,
-                           text=help_text, reply_markup=paid_ikb.check_paid)
-    # else:
-    #     await message.answer("Вы не вошли в аккаунт, попробуйте войти в профиль ‼️",
-    #                          reply_markup=sign_inup_kb.markup)
+    user_id = message.chat.id
+    if await check_login(user_id):
+        if await check_active_user(user_id):
+            await message.answer("Вы уже совершили оплату 😃",
+                                 reply_markup=default_kb.markup)
+        else:
+            help_text = "<b>Заметка:</b>\n"
+            help_text += ('После совершения оплаты, вы должны нажать на эту кнопку. После проверки, '
+                          'мы активируем ваш аккаунт!')
+            await bot.send_message(chat_id=message.chat.id,
+                                   text=help_text, reply_markup=paid_ikb.check_paid)
+    else:
+        await message.answer("Вы не вошли в аккаунт, попробуйте войти в профиль ‼️",
+                             reply_markup=sign_inup_kb.markup)
 
 
 @dp.callback_query(F.data == "send")
@@ -38,7 +44,7 @@ async def send_data(callback_query: types.CallbackQuery):
         user_id.user_id, '✅ Yes' if user_id.is_active else '❌ No')
     message_text += "</pre>"
     await send_data_to_admin(admin_chat_id, message_text)
-    await callback_query.answer("Данные отправлены админу")
+    await callback_query.answer("Данные отправлены админу", reply_markup=default_kb.markup)
 
 
 async def send_data_to_admin(admin_chat_id, data_to_send):
@@ -60,11 +66,11 @@ async def send_to_client(callback_query: types.CallbackQuery, state: FSMContext)
             user_id = data[2]  # Получаем User_id (третья колонка)
 
     if callback_query.data == "reject":
-        await bot.send_message(user_id, text="Ваша Заявка отклонена🙅‍", reply_markup=admin_kb.markup)
+        await bot.send_message(user_id, text="Ваша Заявка отклонена🙅‍", reply_markup=default_kb.markup)
     elif callback_query.data == "confirm":
         await update_user_is_active(user_id)
         await bot.send_message(user_id, text="Ваша заявка подтверждена, Ваш аккаунт полностью доступен!!",
-                               reply_markup=admin_kb.markup)
+                               reply_markup=default_kb.markup)
 
     await state.clear()
 

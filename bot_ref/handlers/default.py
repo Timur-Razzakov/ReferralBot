@@ -85,6 +85,6 @@ async def cmd_description(message: types.Message):
 
 
 def default_handlers_register(router: Router) -> None:
-    router.message.register(cmd_start)
+    router.message.register(cmd_start, CommandStart())
     router.message.register(cmd_help, F.text == 'Помощь ⭐️')
     router.message.register(cmd_description, F.text == 'Описание 📌')
