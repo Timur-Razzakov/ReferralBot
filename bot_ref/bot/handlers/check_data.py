@@ -1,10 +1,7 @@
-from aiogram import Router
 from asgiref.sync import sync_to_async
 from django.contrib.auth.hashers import make_password
 
 from bot_ref.models import User
-
-my_router = Router(name=__name__)
 
 """Функции для проверки и обновления данных в бд!"""
 

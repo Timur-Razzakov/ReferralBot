@@ -1,17 +1,21 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
-# Реализована дефолтная клавиатура
 markup = ReplyKeyboardMarkup(
     keyboard=[
         [
             KeyboardButton(text='Помощь ⭐️'),
             KeyboardButton(text='Описание 📌'),
-            KeyboardButton(text='Админ 👑')
         ],
         [
             KeyboardButton(text='Реферальная ссылка 🚀'),
             KeyboardButton(text='Мои рефералы ')
         ],
+    ],
+    resize_keyboard=True
+)
+
+paid_kb = ReplyKeyboardMarkup(
+    keyboard=[
         [
             KeyboardButton(text='Оплатил 🤑'),
         ]

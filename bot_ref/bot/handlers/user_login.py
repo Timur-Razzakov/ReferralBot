@@ -3,39 +3,25 @@ from aiogram.fsm.context import FSMContext
 from asgiref.sync import sync_to_async
 from django.contrib.auth.hashers import check_password
 
-from bot_ref.handlers.authorization import check_user
-from bot_ref.handlers.referral import my_router
-from bot_ref.keyboards import default_kb
-from bot_ref.keyboards.registration_kb import markup, markup_cancel_forgot_password
+from bot_ref.bot.dataclasses import admins_id
+from bot_ref.bot.handlers.authorization import check_user
+from bot_ref.bot.handlers.check_paid import paid_check
+from bot_ref.bot.keyboards import default_kb, admin_kb
+from bot_ref.bot.keyboards.registration_kb import markup, markup_cancel_forgot_password
+from bot_ref.bot.states import SignInState
+from bot_ref.bot.utils import get_user_for_login
 from bot_ref.models import User
-from bot_ref.states import SignInState
+
+sign_in_router = Router(name=__name__)
 
 
-class UserDataLogin:
-    def __init__(self):
-        self.user_id = None
-        self.binance_id = None
-        self.password = None
-        self.current_state = False
-
-
-sign_in = {}
-
-
-@sync_to_async
-def get_user_for_login(user_id):
-    if user_id not in sign_in:
-        sign_in[user_id] = UserDataLogin()
-    return sign_in[user_id]
-
-
-@my_router.message(F.text == 'Войти 👋')
+@sign_in_router.message(F.text == 'Войти 👋')
 async def command_sign_in(message: types.Message, state: FSMContext):
     await message.answer("Введите свой Pay_id ✨", reply_markup=markup)
     await state.set_state(SignInState.login)
 
 
-@my_router.message(SignInState.login)
+@sign_in_router.message(SignInState.login)
 async def process_sign_in(message: types.Message, state: FSMContext):
     binance_id = message.text
     # проверяем есть ли такое пользователь с указанным binance_id
@@ -51,20 +37,38 @@ async def process_sign_in(message: types.Message, state: FSMContext):
         await state.set_state(SignInState.login)
 
 
-@my_router.message(SignInState.password)
+@sign_in_router.message(SignInState.password)
 async def process_pass(message: types.Message, state: FSMContext):
-    # Проверяем пароль
     user_id = message.chat.id
     password = message.text
     user = await get_user_for_login(user_id)
     user.password = password
     user.current_state = True
+
     if await get_password(binance_id=user.binance_id, password=user.password):
-        await message.answer("Вход был <b>успешно</b> выполнен ⭐️", reply_markup=default_kb.markup)
+        if user_id in admins_id:
+            await message.answer(
+                'Вход был <b>успешно</b> выполнен ⭐️',
+                reply_markup=admin_kb.admin_markup
+            )
+        elif await paid_check(user_id):
+            await message.answer(
+                "Вход был <b>успешно</b> выполнен ⭐️",
+                reply_markup=default_kb.markup
+            )
+        else:
+            await message.answer(
+                "Вход был <b>успешно</b> выполнен ⭐️",
+                reply_markup=default_kb.paid_kb
+            )
+
         await state.clear()
+
     else:
-        await message.answer("Пароль <b>не правильный</b> попробуйте еще раз 🔄",
-                             reply_markup=markup_cancel_forgot_password)
+        await message.answer(
+            "Пароль <b>не правильный</b> попробуйте еще раз 🔄",
+            reply_markup=markup_cancel_forgot_password
+        )
         await state.set_state(SignInState.password)
 
 
@@ -75,9 +79,3 @@ def get_password(binance_id, password):
         return True
     else:
         return False
-
-
-def login_handlers_register(router: Router) -> None:
-    router.message.register(command_sign_in, F.text == 'Войти 👋')
-    router.message.register(process_sign_in, SignInState.login)
-    router.message.register(process_pass, SignInState.password)

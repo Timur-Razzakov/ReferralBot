@@ -18,9 +18,11 @@ class User(models.Model):
     is_registered = models.BooleanField(verbose_name='Зарегистрирован', default=False)
     registered_at = models.DateTimeField(verbose_name='Время регистрации', auto_now_add=True)
     number_payments = models.PositiveIntegerField(verbose_name='Количество выплат', default=0)
+    referrer_id = models.IntegerField(verbose_name='Кто пригласил', default=0)
 
     def __str__(self):
-        return str(self.user_id)
+        # return str(self.user_id)
+        return f'{self.user_id}: {self.user_name}'
 
     class Meta:
         verbose_name = 'Телеграмм Пользователь'
