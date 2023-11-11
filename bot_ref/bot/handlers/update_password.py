@@ -14,19 +14,26 @@ update_password_router = Router(name=__name__)
 
 @update_password_router.message(F.text == 'Забыли пароль? 🆘')
 async def forgot_password(message: types.Message, state: FSMContext):
-    await message.answer("Чтобы изменить пароль, для начала введите ваш binance_id 🫡", reply_markup=markup)
-    await state.set_state(ForgotPasswordState.user_binance_id)
+    current_state = await state.get_state()
+    if current_state:
+        await state.clear()
+
+    await message.answer(
+        "Чтобы изменить пароль, для начала введите ваш Pay_Id 🫡",
+        reply_markup=markup
+    )
+    await state.set_state(ForgotPasswordState.user_pay_id)
 
 
-@update_password_router.message(ForgotPasswordState.user_binance_id)
+@update_password_router.message(ForgotPasswordState.user_pay_id)
 async def process_forgot_password_login(message: types.Message, state: FSMContext):
-    binance_id = message.text
+    pay_id = message.text
     user_id = message.chat.id
-    if await check_login_chat_id(user_binance_id=binance_id, chat_id=user_id):
+    if await check_login_chat_id(user_pay_id=pay_id, chat_id=user_id):
         # получаем класс для заполнения данными сверяем по user_id
         user_data = await get_user_for_update(user_id)
-        user_data.binance_id = binance_id
-        await message.answer("binance_id <b>успешно</b> найден, "
+        user_data.pay_id = pay_id
+        await message.answer("Pay_Id <b>успешно</b> найден, "
                              "и ID пользователя совпадает с логином 🌟\n\n "
                              "Теперь вы <b>сможете</b> изменить пароль ✅\n\n"
                              "Введите <b>новый пароль</b> ✍️", reply_markup=markup)
@@ -36,7 +43,7 @@ async def process_forgot_password_login(message: types.Message, state: FSMContex
         await message.answer("Вы <b>не прошли проверку</b> ❌\n\n"
                              "На это могут быть две причины:\n"
                              "1. Такого логина нет\n"
-                             "2. Ваш ID пользователя не совпадает с binance_id который вы указали\n\n"
+                             "2. Ваш ID пользователя не совпадает с Pay_Id который вы указали\n\n"
                              "Вы можете <b>повторить</b> попытку 🔄",
                              reply_markup=sign_inup_kb.markup)
         await state.clear()
@@ -65,7 +72,7 @@ async def process_forgot_password_password_2(message: types.Message, state: FSMC
     user_data = await get_user_for_update(user_id)
     user_data.repeat_password = repeat_password
     if user_data.new_password == user_data.repeat_password:
-        await update_user_password(binance_id=user_data.binance_id,
+        await update_user_password(pay_id=user_data.pay_id,
                                    password=user_data.new_password)
         await state.clear()
         await message.answer("Изменение пароля прошла <b>успешно</b> ✅\n\n"

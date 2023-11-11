@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Referral
+from .models import User, Referral, PaymentRequest
 
 
 # Регистрируем модели нашего приложения в Django админке
@@ -21,3 +21,10 @@ class TelegramUserAdmin(admin.ModelAdmin):
     list_display_links = ['id', 'user_name']
     search_fields = ['id', 'user_name', 'registered_at']
     # readonly_fields = ['user_id', 'user_name', 'user_password', 'is_registered']
+
+
+@admin.register(PaymentRequest)
+class PaymentRequestAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user_id', 'status']
+    list_display_links = ['id', 'user_id']
+    search_fields = ['id', 'user_id']

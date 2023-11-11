@@ -4,7 +4,7 @@ markup = ReplyKeyboardMarkup(
     keyboard=[
         [
             KeyboardButton(text='Помощь ⭐️'),
-            KeyboardButton(text='Описание 📌'),
+            KeyboardButton(text='Поддержка 🤝'),
         ],
         [
             KeyboardButton(text='Реферальная ссылка 🚀'),

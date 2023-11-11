@@ -3,10 +3,13 @@ from aiogram.filters import CommandStart, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.types import BotCommand
 
+from bot_ref.bot.dataclasses import admins_id
 from bot_ref.bot.handlers.check_data import check_user_chat_id
-from bot_ref.bot.keyboards import default_kb, sign_inup_kb
+from bot_ref.bot.handlers.user_login import SIGN_IN_TEXT
+from bot_ref.bot.keyboards import default_kb, sign_inup_kb, admin_kb
 from bot_ref.bot.loader import bot
 from bot_ref.bot.utils import check_login, get_user_referral
+from config import settings
 
 """Создаём боковое меню, для выбора команды """
 bot_commands = {
@@ -27,13 +30,17 @@ async def setup_bot_commands(*args, **kwargs):
 
 @commands_router.message(CommandStart())
 async def cmd_start(message: types.Message, command: CommandObject = None, state: FSMContext = None):
-    # await find_user_transaction()
     user_id = message.chat.id
-    args = command.args  # получаем id пользователя, владельца ссылки
+    args = command.args if command.args else settings.MAIN_ADMIN_ID
+    # получаем id пользователя, владельца ссылки
     if await check_login(user_id):
+        markup = default_kb.markup
+        if user_id in admins_id:
+            markup = admin_kb.admin_markup
+
         await message.answer(
-            'Вход был <b>успешно</b> выполнен ⭐️',
-            reply_markup=default_kb.markup
+            SIGN_IN_TEXT,
+            reply_markup=markup
         )
     else:
         if args is not None:
@@ -42,8 +49,7 @@ async def cmd_start(message: types.Message, command: CommandObject = None, state
                 if args == str(user_id):
                     await message.answer("Вы не можете активировать свой 'invite_code', попробуйте еще раз ↩️")
                 else:
-                    await message.answer("Ура!! Ссылка получена, теперь быстрее регайся!")
-                    # сохраняем id пользователя для добавления к списку родительских элементов
+                    await message.answer("Ура!! Ссылка получена, теперь быстрее регистрируйся!")
                     referral_data = await get_user_referral(user_id)
                     referral_data.user_id = user_id
                     referral_data.sender_link_id = args
@@ -57,6 +63,6 @@ async def cmd_start(message: types.Message, command: CommandObject = None, state
                                         "иначе остальные команды будут не доступны!\n\n"
                                         "Нажми на команду <b>Регистрация ✌️'</b> или <b>Войти 👋</b>",
                                    reply_markup=sign_inup_kb.markup)
-        except:
+        except Exception:
             await message.reply(text="Какой-то текст если ошибка "
                                      "https://t.me/tg")

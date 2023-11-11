@@ -2,11 +2,12 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from asgiref.sync import sync_to_async
 from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import F, Q
 
 from bot_ref.bot.dataclasses import global_users, UserData, global_referrals, ReferralData, global_update_data, \
     UserDataUpdatePassword, global_sign_in, UserDataLogin, PayConfirmCallback, PayConfirmAction, admins_id
 from bot_ref.bot.loader import bot
-from bot_ref.models import User, Referral
+from bot_ref.models import User, Referral, PaymentRequest, RequestStatus
 
 
 async def check_login(user_id):
@@ -21,12 +22,23 @@ async def check_login(user_id):
 def get_users_referrals(limit: int = 0):
     users = User.objects.exclude(
         user_id__in=admins_id
+    ).annotate(
+        referrer_pay_id=F('referrer__pay_id')
     ).all()
 
     if limit:
         users = users[:limit]
 
     return list(users)
+
+
+@sync_to_async
+def get_paid_users():
+    all_users: list[User] = User.objects.exclude(
+        Q(is_active=False) | Q(user_id__in=admins_id)
+    ).all()
+
+    return list(all_users)
 
 
 @sync_to_async
@@ -38,7 +50,7 @@ def get_user_for_registration(user_id):
 
 @sync_to_async
 def save_user(
-        binance_id,
+        pay_id,
         user_password,
         user_id,
         user_name,
@@ -47,7 +59,7 @@ def save_user(
         referrer_id
 ):
     user = User.objects.create(
-        binance_id=binance_id,
+        pay_id=pay_id,
         user_password=make_password(user_password),
         is_registered=True,
         is_active=False,
@@ -110,12 +122,44 @@ def create_referral(parent_id, referral):
 
 
 @sync_to_async
-def get_user(user_id):
+def create_payment_request(
+        user: User
+) -> PaymentRequest:
+    payment_request = PaymentRequest.objects.create(
+        user_id=user.user_id,
+        status=RequestStatus.PROCESSING,
+        owner=user
+    )
+
+    return payment_request
+
+
+@sync_to_async
+def update_payment_request(
+        payment_request: PaymentRequest,
+        status: RequestStatus
+) -> PaymentRequest:
+    payment_request.status = status
+    payment_request.save()
+    return payment_request
+
+
+@sync_to_async
+def get_user(**kwargs):
     try:
-        user = User.objects.get(user_id=user_id)
+        user = User.objects.get(**kwargs)
         return user
     except ObjectDoesNotExist:
         return None
+
+
+@sync_to_async
+def get_payment_status(user_id: int) -> PaymentRequest:
+    payment_request = PaymentRequest.objects.filter(
+        user_id=user_id
+    ).first()
+
+    return payment_request
 
 
 @sync_to_async
@@ -125,7 +169,7 @@ def get_referrals(user_id):
     referral_info = [
         {
             'user_id': referral.user_id,
-            'binance_id': referral.binance_id,
+            'pay_id': referral.pay_id,
             'username': referral.user_name,
             'is_active': referral.is_active
         }

@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('user_id', models.IntegerField(null=True, unique=True, verbose_name='ID пользователя')),
                 ('user_name', models.CharField(max_length=255, unique=True, verbose_name='Имя пользователя')),
-                ('binance_id', models.CharField(max_length=15, unique=True, verbose_name='Pay id (binance)')),
+                ('pay_id', models.CharField(max_length=15, unique=True, verbose_name='Pay id (binance)')),
                 ('phone_number', models.CharField(max_length=11, unique=True, verbose_name='Номер телефона')),
                 ('invite_link', models.URLField(blank=True, null=True)),
                 ('referral_link', models.URLField(blank=True, null=True)),

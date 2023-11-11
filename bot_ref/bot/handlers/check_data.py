@@ -12,13 +12,13 @@ def check_user_chat_id(chat_id):
 
 
 @sync_to_async
-def check_user(binance_id):
-    return User.objects.filter(binance_id=binance_id).exists()
+def check_user(pay_id):
+    return User.objects.filter(pay_id=pay_id).exists()
 
 
 @sync_to_async
-def check_login_chat_id(user_binance_id, chat_id):
-    return User.objects.filter(binance_id=user_binance_id, user_id=chat_id).exists()
+def check_login_chat_id(user_pay_id, chat_id):
+    return User.objects.filter(pay_id=user_pay_id, user_id=chat_id).exists()
 
 
 @sync_to_async
@@ -34,6 +34,6 @@ def check_active_user(chat_id):
 
 
 @sync_to_async
-def update_user_password(binance_id, password):
-    user = User.objects.filter(binance_id=binance_id).update(user_password=make_password(password))
+def update_user_password(pay_id, password):
+    user = User.objects.filter(pay_id=pay_id).update(user_password=make_password(password))
     return user

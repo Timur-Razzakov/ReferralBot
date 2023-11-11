@@ -1,7 +1,4 @@
-from asgiref.sync import sync_to_async
 from django.db import models
-from django.db.models.signals import post_save
-from smart_selects.db_fields import ChainedForeignKey
 
 
 # Создаем модели нашего приложения
@@ -9,7 +6,7 @@ class User(models.Model):
     # Telegram user id
     user_id = models.IntegerField(verbose_name='ID пользователя', unique=True, null=True)
     user_name = models.CharField(verbose_name='Имя пользователя', max_length=255)
-    binance_id = models.CharField(verbose_name='Pay id (binance)', max_length=15, unique=True)
+    pay_id = models.CharField(verbose_name='Pay id (binance)', max_length=15, unique=True)
     phone_number = models.CharField(verbose_name='Номер телефона',
                                     max_length=11, unique=True, null=False, blank=False)
     invite_link = models.URLField(null=True, blank=True, unique=True)
@@ -18,7 +15,13 @@ class User(models.Model):
     is_registered = models.BooleanField(verbose_name='Зарегистрирован', default=False)
     registered_at = models.DateTimeField(verbose_name='Время регистрации', auto_now_add=True)
     number_payments = models.PositiveIntegerField(verbose_name='Количество выплат', default=0)
-    referrer_id = models.IntegerField(verbose_name='Кто пригласил', default=0)
+    referrer = models.ForeignKey(
+        'User',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='referrals',
+        verbose_name='Кто пригласил'
+    )
 
     def __str__(self):
         # return str(self.user_id)
@@ -40,3 +43,23 @@ class Referral(models.Model):
 
     class Meta:
         unique_together = ['user', 'referral']
+
+
+class RequestStatus(models.TextChoices):
+    CONFIRM = 'CONFIRM'
+    REJECT = 'REJECT'
+    PROCESSING = 'PROCESSING'
+
+
+# Модель используется когда,
+# пользователь отправляет заявку на проверку оплаты
+class PaymentRequest(models.Model):
+    user_id = models.IntegerField()
+    status = models.CharField(max_length=15, choices=RequestStatus.choices)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    owner = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name='payment_request'
+    )

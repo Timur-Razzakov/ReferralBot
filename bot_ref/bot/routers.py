@@ -1,4 +1,4 @@
-from aiogram import Router
+from aiogram import Router, F
 
 from bot_ref.bot.handlers.admin import admin_router
 from bot_ref.bot.handlers.authorization import sign_up_router
@@ -18,18 +18,22 @@ is_authenticated_routers.include_routers(
     admin_router,
     referral_router,
     check_paid_router,
-    default_router,
-    update_password_router
+    default_router
 )
 
+is_authenticated_routers.message.filter(F.chat.type == 'private')
 is_authenticated_routers.message.middleware(IsLoginMiddleware())
 is_authenticated_routers.callback_query.middleware(IsLoginMiddleware())
 
 allow_any_routers.include_routers(
     commands_router,
+    update_password_router,
     sign_up_router,
     sign_in_router
 )
+
+allow_any_routers.message.filter(F.chat.type == 'private')
+
 
 dp.include_routers(
     allow_any_routers,

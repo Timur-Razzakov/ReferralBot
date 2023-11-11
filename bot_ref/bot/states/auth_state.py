@@ -5,6 +5,6 @@ from aiogram.fsm.state import StatesGroup, State
 class AuthState(StatesGroup):
     username = State()
     phone_number = State()
-    binance_id = State()
+    pay_id = State()
     user_password = State()
     user_password_2 = State()

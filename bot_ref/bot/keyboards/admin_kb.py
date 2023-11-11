@@ -11,6 +11,7 @@ markup = ReplyKeyboardMarkup(
         [
             KeyboardButton(text="Краткая статистика 📈"),
             KeyboardButton(text="Полная статистика 📊"),
+            KeyboardButton(text="Рассылка 📧"),
         ],
         [
             KeyboardButton(text="Выгрузить в excel ⬇️"),
@@ -22,7 +23,6 @@ admin_markup = ReplyKeyboardMarkup(
     keyboard=[
         [
             KeyboardButton(text='Помощь ⭐️'),
-            KeyboardButton(text='Описание 📌'),
             KeyboardButton(text='Админ 👑')
         ],
         [

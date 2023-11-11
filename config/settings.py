@@ -9,21 +9,27 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
+import os
 import os.path
 from pathlib import Path
-import os
-import dotenv
 
+import dotenv
 from decouple import config
 
 # Берем TOKEN_API бота, ID администраора телеграмм бота, и секретный ключ Django с .env файла
 
-
 TOKEN_API = config('BOT_TOKEN')
 ADMINS = config('ADMINS_ID')
+MAIN_ADMIN_ID = config('MAIN_ADMIN_ID')
+NOTIFICATION_GROUP_ID = config('NOTIFICATION_GROUP_ID')
 # binance
 BINANCE_SECRET = config('BINANCE_SECRET')
 API_KEY = config('API_KEY')
+
+# binance pay
+BINANCE_PAY_API_KEY = config('BINANCE_PAY_API_KEY')
+BINANCE_PAY_SECRET_KEY = config('BINANCE_PAY_SECRET_KEY')
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY')
 
