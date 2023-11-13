@@ -14,10 +14,13 @@ sign_in_router = Router(name=__name__)
 
 SIGN_IN_TEXT = """
 Вход был успешно выполнен ⭐️
-
-Для использования функционала бота вам необходимо внести единовременный взнос в размере 100$
-После оплаты пожалуйста нажмите кнопку Оплатил 🤑
 """
+
+PAYMENT_TEXT = """
+Запрос на оплату
+LiveMoney_admin отправил(а) запрос на оплату на сумму 100 USDT. Нажмите на эту ссылку, чтобы оплатить.
+https://s.binance.com/GjAhZbFe
+            """
 
 
 @sign_in_router.message(F.text == 'Войти 👋')
@@ -86,6 +89,9 @@ async def process_pass(message: types.Message, state: FSMContext):
         await message.answer(
             SIGN_IN_TEXT,
             reply_markup=markup
+        )
+        await message.answer(
+            PAYMENT_TEXT
         )
 
         await state.clear()

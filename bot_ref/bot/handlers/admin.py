@@ -124,7 +124,7 @@ async def full_statistics(message: types.Message):
     headers = [
         'id',
         'name',
-        'binance id',
+        'pay id',
         'referrer id',
         'phone number',
         'paid status'
@@ -132,7 +132,7 @@ async def full_statistics(message: types.Message):
 
     # Форматирование и вывод таблицы
     table = tabulate(data_with_referrals, headers, tablefmt='pretty')
-    html = (f'На данный момент у вас N рефералов/пользователей, из них M оплативших.'
+    html = (f'На данный момент у Вас {len(all_users)} рефералов:'
             f'<pre>{table}</pre>')
 
     await message.answer(html, parse_mode='HTML')
@@ -150,7 +150,7 @@ async def download_as_execl(message: types.Message):
         (
             'id',
             'name',
-            'binance id',
+            'pay id',
             'referrer id',
             'phone number',
             'paid status'

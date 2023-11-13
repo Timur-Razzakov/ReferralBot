@@ -2,9 +2,11 @@ from aiogram import types, F, Router
 from tabulate import tabulate
 
 from bot_ref.bot.handlers.check_data import check_active_user
+from bot_ref.bot.middlewares.is_paid import IsPaidMiddleware
 from bot_ref.bot.utils import get_user, get_referrals
 
 referral_router = Router(name=__name__)
+referral_router.message.middleware(IsPaidMiddleware())
 
 referral_text = """
 Ваша реферальная ссылка: {invite_link}
@@ -37,7 +39,7 @@ async def get_my_referrals(message: types.Message):
         ] for referral in referral_list
     ]
     table = tabulate(referral_rows, referral_headers, tablefmt='pretty')
-    html = (f'На данный момент у вас N рефералов/пользователей, из них M оплативших.'
+    html = (f'На данный момент у Вас {len(referral_list)} рефералов:'
             f'<pre>{table}</pre>')
 
     await message.answer(text=html, parse_mode='HTML')
