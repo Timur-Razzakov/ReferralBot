@@ -1,6 +1,7 @@
 from aiogram import types, F, Router
 from tabulate import tabulate
 
+from bot_ref.bot.dataclasses import admins_id
 from bot_ref.bot.handlers.check_data import check_active_user
 from bot_ref.bot.middlewares.is_paid import IsPaidMiddleware
 from bot_ref.bot.utils import get_user, get_referrals
@@ -18,7 +19,8 @@ referral_text = """
 
 @referral_router.message(F.text == 'Реферальная ссылка 🚀')
 async def get_invite_link(message: types.Message):
-    if await check_active_user(message.chat.id):
+    user_id = message.chat.id
+    if await check_active_user(user_id) or user_id in admins_id:
         user = await get_user(user_id=message.chat.id)
         # await message.answer(f"Ваша реферальная ссылка: {user.invite_link} \n\n")
         await message.answer(referral_text.format(invite_link=user.invite_link))

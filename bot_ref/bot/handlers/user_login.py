@@ -7,7 +7,7 @@ from bot_ref.bot.dataclasses import admins_id
 from bot_ref.bot.keyboards import default_kb, admin_kb
 from bot_ref.bot.keyboards import registration_kb
 from bot_ref.bot.states import SignInState
-from bot_ref.bot.utils import get_user_for_login, get_user, paid_check
+from bot_ref.bot.utils import get_user_for_login, get_user, paid_check, clear_state
 from bot_ref.models import User
 
 sign_in_router = Router(name=__name__)
@@ -19,12 +19,14 @@ SIGN_IN_TEXT = """
 PAYMENT_TEXT = """
 Запрос на оплату
 LiveMoney_admin отправил(а) запрос на оплату на сумму 100 USDT. Нажмите на эту ссылку, чтобы оплатить.
-https://s.binance.com/GjAhZbFe
-            """
+Pay id для оплаты: 730533334 
+Ссылка: https://s.binance.com/GjAhZbFe
+"""
 
 
 @sign_in_router.message(F.text == 'Войти 👋')
 async def command_sign_in(message: types.Message, state: FSMContext):
+    await clear_state(state)
     await message.answer(
         "Введите свой Pay_Id ✨",
         reply_markup=registration_kb.markup
@@ -90,9 +92,10 @@ async def process_pass(message: types.Message, state: FSMContext):
             SIGN_IN_TEXT,
             reply_markup=markup
         )
-        await message.answer(
-            PAYMENT_TEXT
-        )
+        if user_id not in admins_id:
+            await message.answer(
+                PAYMENT_TEXT
+            )
 
         await state.clear()
     else:

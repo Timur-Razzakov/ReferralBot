@@ -3,12 +3,14 @@ import re
 from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
 
+from bot_ref.bot.dataclasses import admins_id
 from bot_ref.bot.handlers.check_data import check_user_chat_id, check_user
-from bot_ref.bot.keyboards import registration_kb
+from bot_ref.bot.keyboards import registration_kb, admin_kb
 from bot_ref.bot.keyboards import sign_inup_kb
 from bot_ref.bot.loader import bot
 from bot_ref.bot.states import AuthState
-from bot_ref.bot.utils import get_user_for_registration, save_user, get_user, create_referral, get_user_referral
+from bot_ref.bot.utils import get_user_for_registration, save_user, get_user, create_referral, get_user_referral, \
+    check_login, clear_state
 from config import settings
 
 sign_up_router = Router(name=__name__)
@@ -24,18 +26,22 @@ https://www.binance.com/ru/support/faq/%D0%BA%D0%B0%D0%BA-%D0%BD%D0%B0%D0%B9%D1%
 
 @sign_up_router.message(F.text == 'Отмена ❌')
 async def command_cancel(message: types.Message, state: FSMContext):
-    current_state = await state.get_state()
-    if current_state:
-        await state.clear()
+    await clear_state(state)
+    markup = sign_inup_kb.markup
+
+    if (message.chat.id in admins_id and
+            await check_login(message.chat.id)):
+        markup = admin_kb.markup
 
     await message.answer(
         text="Операция успешно отменена 🙅‍",
-        reply_markup=sign_inup_kb.markup
+        reply_markup=markup
     )
 
 
 @sign_up_router.message(F.text == 'Регистрация ✌️')
 async def process_registration(message: types.Message, state: FSMContext):
+    await clear_state(state)
     await message.answer(REGISTRATION_TEXT, reply_markup=registration_kb.markup)
     await state.set_state(AuthState.pay_id)
 
@@ -153,8 +159,8 @@ async def process_password_2(message: types.Message, state: FSMContext):
             )
             await bot.send_message(
                 chat_id=settings.NOTIFICATION_GROUP_ID,
-                text=f'Пользователь {referral.user_name}, присоединился по'
-                     f'ссылке пользователя {referrer.user_name}'
+                text=f'Пользователь {referrer.user_name} пригласил '
+                     f'пользователя {referral.user_name} и заработал 100 USDT'
             )
         await message.answer(
             "Регистрация прошла успешно ✅ \n\n"

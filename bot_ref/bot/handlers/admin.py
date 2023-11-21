@@ -9,7 +9,7 @@ from tabulate import tabulate
 
 from bot_ref.bot.loader import bot
 from bot_ref.models import User
-from ..keyboards import admin_kb
+from ..keyboards import admin_kb, registration_kb
 from ..middlewares.is_admin import IsAdminMiddleware
 from ..states.mailing_state import MailingState
 from ..states.roulette_state import RouletteState
@@ -52,7 +52,9 @@ async def send_all(message: types.Message):
 
 @admin_router.message(F.text == 'Рассылка 📧')
 async def send_mailing_start(message: types.Message, state: FSMContext):
-    await message.answer('Введите текст рассылки 📧')
+    await message.answer(
+        text='Введите текст рассылки 📧',
+        reply_markup=registration_kb.markup)
     await state.set_state(MailingState.status)
 
 

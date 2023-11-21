@@ -1,3 +1,4 @@
+from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from asgiref.sync import sync_to_async
 from django.contrib.auth.hashers import make_password
@@ -16,6 +17,12 @@ async def check_login(user_id):
         return True
     else:
         return False
+
+
+async def clear_state(state: FSMContext):
+    current_state = await state.get_state()
+    if current_state:
+        await state.clear()
 
 
 @sync_to_async

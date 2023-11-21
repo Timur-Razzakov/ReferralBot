@@ -53,17 +53,7 @@ class UserDataLogin:
         self.current_state = False
 
 
-a = UserDataLogin()
-a.current_state = True
-a.user_id = 1457037393
-a.pay_id = 1111
-
-
-b = UserDataLogin()
-b.current_state = False
-b.user_id = 818429523
-b.pay_id = 2222
-global_sign_in = {1457037393: a, 818429523: b}
+global_sign_in = {}
 
 
 class PayConfirmAction(enum.Enum):
