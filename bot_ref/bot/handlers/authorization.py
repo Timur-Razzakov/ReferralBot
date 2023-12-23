@@ -12,9 +12,9 @@ from bot_ref.bot.states import AuthState
 from bot_ref.bot.texts import registration_text, cancel_action_text, user_id_error_text, pay_id_error_text, \
     user_name_text, pay_id_type_error_text, phone_number_text, password_text, retry_password_text, \
     password_letters_error_text, new_referral_text, new_referral_notification_text, registration_success_text, \
-    password_error_text
+    password_error_text, exists_phone_text
 from bot_ref.bot.utils import get_user_for_registration, save_user, get_user, create_referral, get_user_referral, \
-    check_login, clear_state
+    check_login, clear_state, phone_exists
 from config import settings
 
 sign_up_router = Router(name=__name__)
@@ -83,6 +83,13 @@ async def process_phone_number(message: types.Message, state: FSMContext):
     user_id = message.chat.id
     user = await get_user_for_registration(user_id)
     user.phone_number = phone_number
+    if phone_exists(phone_number):
+        await state.clear()
+        await message.answer(
+            exists_phone_text,
+            reply_markup=sign_inup_kb.markup
+        )
+
     await message.answer(
         password_text,
         reply_markup=registration_kb.markup

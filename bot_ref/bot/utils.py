@@ -87,6 +87,14 @@ def paid_check(user_id) -> bool:
 
     return False
 
+@sync_to_async
+def phone_exists(phone_number) -> bool:
+    user = User.objects.filter(phone_number=phone_number).first()
+    if user:
+        return True
+
+    return False
+
 
 async def send_data_to_admin(admin_chat_id, data_to_send, user_id):
     pay = InlineKeyboardMarkup(
