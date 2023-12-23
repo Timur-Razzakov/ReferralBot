@@ -4,11 +4,11 @@ from django.db import models
 # Создаем модели нашего приложения
 class User(models.Model):
     # Telegram user id
-    user_id = models.IntegerField(verbose_name='ID пользователя', unique=True, null=True)
+    user_id = models.BigIntegerField(verbose_name='ID пользователя', unique=True, null=True)
     user_name = models.CharField(verbose_name='Имя пользователя', max_length=255)
     pay_id = models.CharField(verbose_name='Pay id (binance)', max_length=15, unique=True)
     phone_number = models.CharField(verbose_name='Номер телефона',
-                                    max_length=11, unique=True, null=False, blank=False)
+                                    max_length=12, unique=True, null=False, blank=False)
     invite_link = models.URLField(null=True, blank=True, unique=True)
     user_password = models.CharField(verbose_name='Пароль', max_length=255)
     is_active = models.BooleanField(verbose_name='Отправил деньги', default=False)
