@@ -83,7 +83,8 @@ async def process_phone_number(message: types.Message, state: FSMContext):
     user_id = message.chat.id
     user = await get_user_for_registration(user_id)
     user.phone_number = phone_number
-    if phone_exists(phone_number):
+
+    if await phone_exists(phone_number):
         await state.clear()
         await message.answer(
             exists_phone_text,
