@@ -7,6 +7,8 @@ from bot_ref.bot.handlers.check_data import check_login_chat_id, update_user_pas
 from bot_ref.bot.keyboards import sign_inup_kb
 from bot_ref.bot.keyboards.registration_kb import markup
 from bot_ref.bot.states import ForgotPasswordState
+from bot_ref.bot.texts import reset_password_pay_id_text, new_password_text, reset_password_error_text, \
+    repeat_new_password_text, new_password_error_text, success_password_change_text, password_input_error_text
 from bot_ref.bot.utils import get_user_for_update
 
 update_password_router = Router(name=__name__)
@@ -19,7 +21,7 @@ async def forgot_password(message: types.Message, state: FSMContext):
         await state.clear()
 
     await message.answer(
-        "Чтобы изменить пароль, для начала введите ваш Pay_Id 🫡",
+        reset_password_pay_id_text,
         reply_markup=markup
     )
     await state.set_state(ForgotPasswordState.user_pay_id)
@@ -33,19 +35,17 @@ async def process_forgot_password_login(message: types.Message, state: FSMContex
         # получаем класс для заполнения данными сверяем по user_id
         user_data = await get_user_for_update(user_id)
         user_data.pay_id = pay_id
-        await message.answer("Pay_Id <b>успешно</b> найден, "
-                             "и ID пользователя совпадает с логином 🌟\n\n "
-                             "Теперь вы <b>сможете</b> изменить пароль ✅\n\n"
-                             "Введите <b>новый пароль</b> ✍️", reply_markup=markup)
+        await message.answer(
+            new_password_text,
+            reply_markup=markup
+        )
 
         await state.set_state(ForgotPasswordState.new_password)
     else:
-        await message.answer("Вы <b>не прошли проверку</b> ❌\n\n"
-                             "На это могут быть две причины:\n"
-                             "1. Такого логина нет\n"
-                             "2. Ваш ID пользователя не совпадает с Pay_Id который вы указали\n\n"
-                             "Вы можете <b>повторить</b> попытку 🔄",
-                             reply_markup=sign_inup_kb.markup)
+        await message.answer(
+            reset_password_error_text,
+            reply_markup=sign_inup_kb.markup
+        )
         await state.clear()
 
 
@@ -56,12 +56,10 @@ async def process_forgot_password_password(message: types.Message, state: FSMCon
         user_id = message.chat.id
         user_data = await get_user_for_update(user_id)
         user_data.new_password = password
-        await message.answer("Введи пароль <b>еще раз</b> 🔄", reply_markup=markup)
+        await message.answer(repeat_new_password_text, reply_markup=markup)
         await state.set_state(ForgotPasswordState.new_password_2)
     else:
-        await message.answer("Пароль должен быть только из <b>латинских букв</b> "
-                             "и содержать хотя бы <b>одну цифру</b>\n\n"
-                             "Повторите попытку 🔄", reply_markup=markup)
+        await message.answer(new_password_error_text, reply_markup=markup)
         await state.set_state(ForgotPasswordState.new_password)
 
 
@@ -75,10 +73,10 @@ async def process_forgot_password_password_2(message: types.Message, state: FSMC
         await update_user_password(pay_id=user_data.pay_id,
                                    password=user_data.new_password)
         await state.clear()
-        await message.answer("Изменение пароля прошла <b>успешно</b> ✅\n\n"
-                             "Теперь, войдите в свой профиль 💝",
-                             reply_markup=sign_inup_kb.markup)
+        await message.answer(
+            success_password_change_text,
+            reply_markup=sign_inup_kb.markup
+        )
     else:
-        await message.answer("Вы ввели пароль <b>не правильно</b> ❌\n\n"
-                             "Попробуйте еще раз 🔄", reply_markup=markup)
+        await message.answer(password_input_error_text, reply_markup=markup)
         await state.set_state(ForgotPasswordState.new_password)

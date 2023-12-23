@@ -4,17 +4,11 @@ from tabulate import tabulate
 from bot_ref.bot.dataclasses import admins_id
 from bot_ref.bot.handlers.check_data import check_active_user
 from bot_ref.bot.middlewares.is_paid import IsPaidMiddleware
+from bot_ref.bot.texts import referral_text, not_paid_referral_text
 from bot_ref.bot.utils import get_user, get_referrals
 
 referral_router = Router(name=__name__)
 referral_router.message.middleware(IsPaidMiddleware())
-
-referral_text = """
-Ваша реферальная ссылка: {invite_link}
-
-‼️Убедитесь что реферал регистрируется в боте по вашей ссылке!
-❌Иначе платеж за реферала не будет одобрен❌
-"""
 
 
 @referral_router.message(F.text == 'Реферальная ссылка 🚀')
@@ -25,7 +19,7 @@ async def get_invite_link(message: types.Message):
         # await message.answer(f"Ваша реферальная ссылка: {user.invite_link} \n\n")
         await message.answer(referral_text.format(invite_link=user.invite_link))
     else:
-        await message.answer(f"Сначала совершите взнос в размере 100$")
+        await message.answer(not_paid_referral_text)
 
 
 @referral_router.message(F.text == 'Мои рефералы')

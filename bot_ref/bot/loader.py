@@ -5,6 +5,6 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from config import settings as config
 
 # Создаем нашего бота и диспетчера, MemoryStorage хранилище состояний
-bot = Bot(token=config.TOKEN_API, parse_mode=ParseMode.HTML, )
+bot = Bot(token=config.TOKEN_API, parse_mode=ParseMode.HTML)
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)

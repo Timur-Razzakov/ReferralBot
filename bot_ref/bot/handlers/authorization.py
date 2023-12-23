@@ -9,19 +9,15 @@ from bot_ref.bot.keyboards import registration_kb, admin_kb
 from bot_ref.bot.keyboards import sign_inup_kb
 from bot_ref.bot.loader import bot
 from bot_ref.bot.states import AuthState
+from bot_ref.bot.texts import registration_text, cancel_action_text, user_id_error_text, pay_id_error_text, \
+    user_name_text, pay_id_type_error_text, phone_number_text, password_text, retry_password_text, \
+    password_letters_error_text, new_referral_text, new_referral_notification_text, registration_success_text, \
+    password_error_text
 from bot_ref.bot.utils import get_user_for_registration, save_user, get_user, create_referral, get_user_referral, \
     check_login, clear_state
 from config import settings
 
 sign_up_router = Router(name=__name__)
-
-REGISTRATION_TEXT = """
-Для регистрации сначала напишите свой Binance Pay_Id!
-❔Подробную информацию о том что из себя представляет Pay_Id и где его искать вы найдете на официальном сайте Binance: 
-https://www.binance.com/ru/support/faq/%D0%BA%D0%B0%D0%BA-%D0%BD%D0%B0%D0%B9%D1%82%D0%B8-binance-pay-id-f3040335259a4b1ea68934daf94bab1d
-
-‼️Перед тем как отравить Ваш Pay_Id убедитесь что вы написали его правильно!
-"""
 
 
 @sign_up_router.message(F.text == 'Отмена ❌')
@@ -34,7 +30,7 @@ async def command_cancel(message: types.Message, state: FSMContext):
         markup = admin_kb.markup
 
     await message.answer(
-        text="Операция успешно отменена 🙅‍",
+        text=cancel_action_text,
         reply_markup=markup
     )
 
@@ -42,7 +38,7 @@ async def command_cancel(message: types.Message, state: FSMContext):
 @sign_up_router.message(F.text == 'Регистрация ✌️')
 async def process_registration(message: types.Message, state: FSMContext):
     await clear_state(state)
-    await message.answer(REGISTRATION_TEXT, reply_markup=registration_kb.markup)
+    await message.answer(registration_text, reply_markup=registration_kb.markup)
     await state.set_state(AuthState.pay_id)
 
 
@@ -52,42 +48,27 @@ async def process_binance_id(message: types.Message, state: FSMContext):
     user_id = message.chat.id
     user = await get_user_for_registration(user_id)
     if await check_user_chat_id(chat_id=user_id):
-        await message.answer("Пользователь с таким ID как у вас уже есть, войдите в свой аккаунт 🫡",
+        await message.answer(user_id_error_text,
                              reply_markup=sign_inup_kb.markup)
         await state.clear()
     else:
         if await check_user(pay_id=pay_id):
             await message.answer(
-                "Пользователь с таким pay_id <b>уже есть</b>, попробуйте еще раз ↩️",
+                pay_id_error_text,
                 reply_markup=registration_kb.markup)
             await state.set_state(AuthState.pay_id)
         else:
             if re.match('^[0-9]+$', pay_id) and len(pay_id) > 3:
                 user.pay_id = pay_id
-                await message.answer("Теперь напиши ваше имя ✍️", reply_markup=registration_kb.markup)
+                await message.answer(user_name_text, reply_markup=registration_kb.markup)
                 await state.set_state(AuthState.username)
             else:
-                await message.answer("Pay_id должен состоять только из <b>цифр 🔢</b>\n\n"
-                                     "Попробуйте еще раз ↩️!", reply_markup=registration_kb.markup)
+                await message.answer(pay_id_type_error_text, reply_markup=registration_kb.markup)
                 await state.set_state(AuthState.pay_id)
 
 
 @sign_up_router.message(AuthState.username)
 async def process_username(message: types.Message, state: FSMContext):
-    phone_number_text = """
-    Следующий шаг: отправьте номер Вашего телефона✍️
-
-Важно знать❗️
-
-Мы не пишем, не звоним и храним ваши данные пользователя в конфиденциальности!🔐
-
-Убедительная просьба‼️
-
-Убедитесь, что вы ввели свой рабочий номер телефона! В случае утери пользовательского пароля, восстановление будет возможным только через номер телефона!
-Формат номера телефона должно быть полным!📝
-
-Пример: +71234567890  ✅
-    """
     username = message.text
     user_id = message.chat.id
     user = await get_user_for_registration(user_id)
@@ -103,7 +84,7 @@ async def process_phone_number(message: types.Message, state: FSMContext):
     user = await get_user_for_registration(user_id)
     user.phone_number = phone_number
     await message.answer(
-        "Теперь придумайте и напишите пароль ✍️",
+        password_text,
         reply_markup=registration_kb.markup
     )
     await state.set_state(AuthState.user_password)
@@ -119,17 +100,24 @@ async def process_password(message: types.Message, state: FSMContext):
         user.user_id = user_id
         # получаем имя бота
         user.bot_name = (await bot.get_me()).username
-        await message.answer("Введи пароль <b>еще раз</b> 🔄", reply_markup=registration_kb.markup)
+        await message.answer(
+            retry_password_text,
+            reply_markup=registration_kb.markup
+        )
         await state.set_state(AuthState.user_password_2)
     else:
-        await message.answer("Пароль должен быть только из <b>латинских букв</b> "
-                             "и содержать хотя бы <b>одну цифру</b>\n\n"
-                             "Повторите попытку 🔄", reply_markup=registration_kb.markup)
+        await message.answer(
+            password_letters_error_text,
+            reply_markup=registration_kb.markup
+        )
         await state.set_state(AuthState.user_password)
 
 
 @sign_up_router.message(AuthState.user_password_2)
-async def process_password_2(message: types.Message, state: FSMContext):
+async def process_password_2(
+        message: types.Message,
+        state: FSMContext
+):
     password_2 = message.text
     user_id = message.chat.id
     user = await get_user_for_registration(user_id)
@@ -137,41 +125,47 @@ async def process_password_2(message: types.Message, state: FSMContext):
     if user.user_password == user.repeat_password:
 
         referrals = await get_user_referral(user_id)
-        if referrals.sender_link_id and referrals.user_id:
-            referrer = await get_user(user_id=referrals.sender_link_id)
+        if not referrals.sender_link_id:
+            referrals.sender_link_id = settings.MAIN_ADMIN_ID
 
-            await save_user(
-                pay_id=user.pay_id,
-                user_password=user.user_password,
-                user_id=user.user_id,
-                user_name=user.user_name,
-                phone_number=user.phone_number,
-                bot_name=user.bot_name,
-                referrer_id=referrer.pk
-            )
+        if not referrals.user_id:
+            referrals.user_id = user_id
 
-            referral = await get_user(user_id=referrals.user_id)
-            await create_referral(referrer.pk, referral)
-            await state.clear()
-            await bot.send_message(
-                referrals.sender_link_id,
-                text=f'У вас появился реферал по имени: {referral.user_name}'
+        referrer = await get_user(
+            user_id=referrals.sender_link_id
+        )
+
+        await save_user(
+            pay_id=user.pay_id,
+            user_password=user.user_password,
+            user_id=user.user_id,
+            user_name=user.user_name,
+            phone_number=user.phone_number,
+            bot_name=user.bot_name,
+            referrer_id=referrer.pk
+        )
+
+        referral = await get_user(user_id=referrals.user_id)
+        await create_referral(referrer.pk, referral)
+        await state.clear()
+        await bot.send_message(
+            referrals.sender_link_id,
+            text=new_referral_text.format(user_name=referral.user_name)
+        )
+        await bot.send_message(
+            chat_id=settings.NOTIFICATION_GROUP_ID,
+            text=new_referral_notification_text.format(
+                referrer_user_name=referrer.user_name,
+                referral_user_name=referral.user_name
             )
-            await bot.send_message(
-                chat_id=settings.NOTIFICATION_GROUP_ID,
-                text=f'Пользователь {referrer.user_name} пригласил '
-                     f'пользователя {referral.user_name} и заработал 100 USDT'
-            )
+        )
         await message.answer(
-            "Регистрация прошла успешно ✅ \n\n"
-            "Теперь Вам нужно зайти в свой аккаунт"
-            " с помощью команды Войти 👋",
+            registration_success_text,
             reply_markup=sign_inup_kb.markup
         )
     else:
         await message.answer(
-            "Вы ввели пароль <b>не правильно</b> ❌\n\n"
-            "Попробуйте еще раз 🔄",
+            password_error_text,
             reply_markup=registration_kb.markup
         )
         await state.set_state(AuthState.user_password)

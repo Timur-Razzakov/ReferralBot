@@ -7,28 +7,19 @@ from bot_ref.bot.dataclasses import admins_id
 from bot_ref.bot.keyboards import default_kb, admin_kb
 from bot_ref.bot.keyboards import registration_kb
 from bot_ref.bot.states import SignInState
+from bot_ref.bot.texts import payment_text, sign_in_text, input_pay_id_text, help_text, input_password_text, \
+    login_error_text, input_password_error_text
 from bot_ref.bot.utils import get_user_for_login, get_user, paid_check, clear_state
 from bot_ref.models import User
 
 sign_in_router = Router(name=__name__)
-
-SIGN_IN_TEXT = """
-Вход был успешно выполнен ⭐️
-"""
-
-PAYMENT_TEXT = """
-Запрос на оплату
-LiveMoney_admin отправил(а) запрос на оплату на сумму 100 USDT. Нажмите на эту ссылку, чтобы оплатить.
-Pay id для оплаты: 730533334 
-Ссылка: https://s.binance.com/GjAhZbFe
-"""
 
 
 @sign_in_router.message(F.text == 'Войти 👋')
 async def command_sign_in(message: types.Message, state: FSMContext):
     await clear_state(state)
     await message.answer(
-        "Введите свой Pay_Id ✨",
+        input_pay_id_text,
         reply_markup=registration_kb.markup
     )
     await state.set_state(SignInState.login)
@@ -36,16 +27,6 @@ async def command_sign_in(message: types.Message, state: FSMContext):
 
 @sign_in_router.message(F.text == 'Помощь 🆘')
 async def user_help(message: types.Message):
-    help_text = """
-    Хотите узнать, как начать зарабатывать с нашим ботом? Вот шаги для регистрации:
-
-Нажмите Регистрация ✌️ и введите ваш Binance Pay ID, имя и номер телефона.
-Создайте пароль и подтвердите его, чтобы обеспечить безопасность вашего аккаунта.
-После регистрации, используйте Войти👋 и начните свой путь к заработку!
-Функционал бота включает в себя приглашение рефералов и вознаграждение за каждого приглашенного. Следите за вашим балансом и собирайте награды!
-
-Если у вас возникли какие-либо вопросы или вам нужна дополнительная помощь, не стесняйтесь обращаться к нам @Podderlka. Мы всегда готовы помочь!
-    """
     await message.answer(help_text)
 
 
@@ -60,13 +41,13 @@ async def process_sign_in(message: types.Message, state: FSMContext):
         user.pay_id = pay_id
         user.user_id = user_id
         await message.answer(
-            "Теперь вам нужно ввести пароль 🔐",
+            input_password_text,
             reply_markup=registration_kb.markup_cancel_forgot_password
         )
         await state.set_state(SignInState.password)
     else:
         await message.answer(
-            "Такого логина <b>нет</b>, повторите еще раз ❌",
+            login_error_text,
             reply_markup=registration_kb.markup
         )
         await state.set_state(SignInState.login)
@@ -89,18 +70,18 @@ async def process_pass(message: types.Message, state: FSMContext):
             markup = default_kb.markup
 
         await message.answer(
-            SIGN_IN_TEXT,
+            sign_in_text,
             reply_markup=markup
         )
-        if user_id not in admins_id:
+        if not await paid_check(user_id) and user_id not in admins_id:
             await message.answer(
-                PAYMENT_TEXT
+                payment_text
             )
 
         await state.clear()
     else:
         await message.answer(
-            "Пароль <b>не правильный</b> попробуйте еще раз 🔄",
+            input_password_error_text,
             reply_markup=registration_kb.markup_cancel_forgot_password
         )
         await state.set_state(SignInState.password)

@@ -10,6 +10,8 @@ from .check_data import update_user_is_active
 from .referral import get_user
 from ..dataclasses import PayConfirmAction, PayConfirmCallback
 from ..keyboards.default_kb import paid_kb
+from ..texts import success_payment_text, repeated_payment_request_text, payment_help_text, \
+    payment_data_sent_admin_text, payment_reject_text, payment_confirm_text
 from ..utils import send_data_to_admin, get_payment_status, create_payment_request, update_payment_request
 from ...models import RequestStatus
 
@@ -24,24 +26,25 @@ async def cmd_check_paid(message: types.Message):
 
     if payment_request and payment_request.status == RequestStatus.CONFIRM:
         await message.answer(
-            'Вы уже оплатили взнос 🥳',
+            success_payment_text,
             reply_markup=default_kb.markup
         )
 
     if payment_request:
         await message.answer(
-            f'Вы уже отправляли заявку на проверку оплаты'
-            f'ниже вы можете узнать его статус\n\n'
-            f'Статус заявки: {payment_request.status}'
+            repeated_payment_request_text.format(
+                status=payment_request.status
+            )
         )
         return
     else:
-        help_text = "<b>Заметка:</b>\n"
-        help_text += ('После совершения оплаты, вы должны нажать на эту кнопку. После проверки, '
-                      'мы активируем ваш аккаунт!')
+
         user = await get_user(user_id=user_id)
         await create_payment_request(user)
-        await message.answer(text=help_text, reply_markup=paid_ikb.check_paid)
+        await message.answer(
+            text=payment_help_text,
+            reply_markup=paid_ikb.check_paid
+        )
 
 
 @check_paid_router.callback_query(F.data == "send")
@@ -63,8 +66,7 @@ async def send_data(callback_query: types.CallbackQuery):
 
     await send_data_to_admin(admin_chat_id, html, user.user_id)
     await callback_query.message.edit_text(
-        'Данные отправлены админу 📨 \n\n'
-        'Пожалуйста ожидайте верификации аккаунта!'
+        payment_data_sent_admin_text
     )
     await callback_query.answer()
 
@@ -84,24 +86,12 @@ async def send_to_client(
     message_text = (f'<pre>{callback_query.message.text}</pre>'
                     f'<b>Аккаунт проверен ✅</b>')
 
-    reject_text = """
-    Ваша Заявка отклонена🙅
-
-❗️Если у Вас возникли какие-то проблемы или вопросы, обращайтесь в нашу поддержку @Poderjka
-    """
-
-    confirm_text = """
-    ✅Ваша заявка подтверждена, добро пожаловать!
-
-Скорее начинайте зарабатывать с нами!
-    """
-
     payment_request = get_payment_status(user_id)
 
     if callback_data.action == PayConfirmAction.REJECT:
         await bot.send_message(
             user_id,
-            text=reject_text,
+            text=payment_reject_text,
             reply_markup=paid_kb
         )
         await callback_query.message.edit_text(message_text)
@@ -111,7 +101,7 @@ async def send_to_client(
         await update_user_is_active(user_id)
         await bot.send_message(
             user_id,
-            text=confirm_text,
+            text=payment_confirm_text,
             reply_markup=default_kb.markup
         )
         await callback_query.message.edit_text(message_text)

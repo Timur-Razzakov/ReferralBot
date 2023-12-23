@@ -5,7 +5,7 @@ from aiogram.types import BotCommand
 
 from bot_ref.bot.dataclasses import admins_id
 from bot_ref.bot.handlers.check_data import check_user_chat_id
-from bot_ref.bot.handlers.user_login import SIGN_IN_TEXT
+from bot_ref.bot.handlers.user_login import sign_in_text
 from bot_ref.bot.keyboards import default_kb, sign_inup_kb, admin_kb
 from bot_ref.bot.loader import bot
 from bot_ref.bot.utils import check_login, get_user_referral
@@ -39,7 +39,7 @@ async def cmd_start(message: types.Message, command: CommandObject = None, state
             markup = admin_kb.admin_markup
 
         await message.answer(
-            SIGN_IN_TEXT,
+            sign_in_text,
             reply_markup=markup
         )
     else:

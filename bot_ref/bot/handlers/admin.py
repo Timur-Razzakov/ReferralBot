@@ -13,19 +13,9 @@ from ..keyboards import admin_kb, registration_kb
 from ..middlewares.is_admin import IsAdminMiddleware
 from ..states.mailing_state import MailingState
 from ..states.roulette_state import RouletteState
+from ..texts import admin_help_text, mailing_send_text, mailing_send_success_text, mailing_text, admin_hello_text, \
+    home_menu_text, roulette_member_text, roulette_member_error_text
 from ..utils import get_users_referrals, get_paid_users
-
-HELP_ADMIN_TEXT = '''
-Привет администратор 🙋 У вас есть такие команды как:
-
-Домой 🏠 - вернет Вас в меню пользователя
-Помощь 🔔 - помощь по командам бота
-Рулетка 🎲 - выбор N случайных, авторизированных пользователей.
-После нажатия Рулетки, нужно будет ввести количество пользователей которое Вы хотите получить, это должно быть целое число (Например: 1, 2, 3), после отправки числа сразу будут присланы ID, Имя и PayID счастливчиков!
-Краткая статистика 📈 - выводит неполные данные пользователей (ID, Имя, PayID)
-Полная статистика 📊 - вывод все данные о пользователях (ID, Имя, PayID, ID рефовода, номер, статус)
-Выгрузить в excel ⬇️ - получение Excel файла с полной статистикой пользователей
-'''
 
 admin_router = Router(name=__name__)
 admin_router.message.middleware(IsAdminMiddleware())
@@ -34,7 +24,7 @@ admin_router.message.middleware(IsAdminMiddleware())
 async def send_mailing(message: types.Message):
     users = await get_paid_users()
     text = message.text[message.text.find(':') + 1:]
-    await message.answer('Сообщение: отправляется')
+    await message.answer(mailing_send_text)
 
     for user in users:
         try:
@@ -42,7 +32,10 @@ async def send_mailing(message: types.Message):
         except TelegramBadRequest:
             print('error', user.user_id, user.user_name)
 
-    await message.answer('Все успешно отправлено!')
+    await message.answer(
+        mailing_send_success_text,
+        reply_markup=admin_kb.markup
+    )
 
 
 @admin_router.message(F.text.regexp('Рассылка:'))
@@ -53,7 +46,7 @@ async def send_all(message: types.Message):
 @admin_router.message(F.text == 'Рассылка 📧')
 async def send_mailing_start(message: types.Message, state: FSMContext):
     await message.answer(
-        text='Введите текст рассылки 📧',
+        text=mailing_text,
         reply_markup=registration_kb.markup)
     await state.set_state(MailingState.status)
 
@@ -66,22 +59,21 @@ async def mailing_send(message: types.Message, state: FSMContext):
 
 @admin_router.message(F.text == 'Админ 👑')
 async def cmd_admin(message: types.Message):
-    await message.answer('Вы вошли в меню администратора 🤴\n\n'
-                         'Ниже предоставлены команды которые вы можете использовать 💭',
+    await message.answer(admin_hello_text,
                          reply_markup=admin_kb.markup)
 
 
 @admin_router.message(F.text == 'Домой 🏠')
 async def cmd_home(message: types.Message):
     await message.answer(
-        'Вы успешно перешли в главное меню!',
+        home_menu_text,
         reply_markup=admin_kb.admin_markup
     )
 
 
 @admin_router.message(F.text == 'Помощь 🔔')
 async def cmd_help_admin(message: types.Message):
-    await message.answer(text=HELP_ADMIN_TEXT)
+    await message.answer(text=admin_help_text)
 
 
 @admin_router.message(F.text == 'Краткая статистика 📈')
@@ -179,14 +171,14 @@ async def download_as_execl(message: types.Message):
 
 @admin_router.message(F.text == 'Рулетка 🎲')
 async def roulette(message: types.Message, state: FSMContext):
-    await message.answer('Выберите число участников')
+    await message.answer(roulette_member_text)
     await state.set_state(RouletteState.limit)
 
 
 @admin_router.message(RouletteState.limit)
 async def start_roulette(message: types.Message, state: FSMContext):
     if not message.text.isdigit():
-        await message.answer('Рулетка принимает только число ‼️')
+        await message.answer(roulette_member_error_text)
         return
 
     limit = int(message.text)

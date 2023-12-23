@@ -4,6 +4,7 @@ from aiogram import BaseMiddleware
 from aiogram.types import Message, CallbackQuery
 
 from bot_ref.bot.keyboards import sign_inup_kb
+from bot_ref.bot.texts import login_required_text
 from bot_ref.bot.utils import check_login
 
 
@@ -21,7 +22,7 @@ class IsLoginMiddleware(BaseMiddleware):
 
         if not await check_login(user_id):
             await event.answer(
-                'С начало авторизуйтесь 🤚',
+                login_required_text,
                 reply_markup=sign_inup_kb.markup
             )
             return
