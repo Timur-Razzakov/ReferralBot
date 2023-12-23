@@ -87,6 +87,7 @@ def paid_check(user_id) -> bool:
 
     return False
 
+
 @sync_to_async
 def phone_exists(phone_number) -> bool:
     user = User.objects.filter(phone_number=phone_number).first()
@@ -140,7 +141,7 @@ def create_referral(parent_id, referral):
 def create_payment_request(
         user: User
 ) -> PaymentRequest:
-    payment_request = PaymentRequest.objects.create(
+    payment_request = PaymentRequest.objects.update_or_create(
         user_id=user.user_id,
         status=RequestStatus.PROCESSING,
         owner=user

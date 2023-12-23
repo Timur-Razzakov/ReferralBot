@@ -29,8 +29,9 @@ async def cmd_check_paid(message: types.Message):
             success_payment_text,
             reply_markup=default_kb.markup
         )
+        return
 
-    if payment_request:
+    if payment_request and payment_request.status == RequestStatus.PROCESSING:
         await message.answer(
             repeated_payment_request_text.format(
                 status=payment_request.status
@@ -38,7 +39,7 @@ async def cmd_check_paid(message: types.Message):
         )
         return
     else:
-
+        print('Asdasdasdaffdsgjgjo')
         user = await get_user(user_id=user_id)
         await create_payment_request(user)
         await message.answer(
@@ -86,7 +87,7 @@ async def send_to_client(
     message_text = (f'<pre>{callback_query.message.text}</pre>'
                     f'<b>Аккаунт проверен ✅</b>')
 
-    payment_request = get_payment_status(user_id)
+    payment_request = await get_payment_status(user_id)
 
     if callback_data.action == PayConfirmAction.REJECT:
         await bot.send_message(

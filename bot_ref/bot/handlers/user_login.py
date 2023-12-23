@@ -59,10 +59,10 @@ async def process_pass(message: types.Message, state: FSMContext):
     password = message.text
     user = await get_user_for_login(user_id)
     user.password = password
-    user.current_state = True
 
     if await get_password(pay_id=user.pay_id, password=user.password):
         markup = default_kb.paid_kb
+        user.current_state = True
 
         if user_id in admins_id:
             markup = admin_kb.admin_markup

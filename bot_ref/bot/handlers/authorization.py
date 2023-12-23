@@ -58,7 +58,8 @@ async def process_binance_id(message: types.Message, state: FSMContext):
                 reply_markup=registration_kb.markup)
             await state.set_state(AuthState.pay_id)
         else:
-            if re.match('^[0-9]+$', pay_id) and len(pay_id) > 3:
+            if (re.match('^[0-9]+$', pay_id) and len(pay_id) > 3
+                    and len(pay_id) < 15):
                 user.pay_id = pay_id
                 await message.answer(user_name_text, reply_markup=registration_kb.markup)
                 await state.set_state(AuthState.username)
