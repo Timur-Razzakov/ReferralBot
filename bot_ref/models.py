@@ -55,7 +55,7 @@ class RequestStatus(models.TextChoices):
 # Модель используется когда,
 # пользователь отправляет заявку на проверку оплаты
 class PaymentRequest(models.Model):
-    user_id = models.IntegerField()
+    user_id = models.BigIntegerField()
     status = models.CharField(max_length=15, choices=RequestStatus.choices)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

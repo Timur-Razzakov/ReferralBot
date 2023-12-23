@@ -163,9 +163,9 @@ async def download_as_execl(message: types.Message):
             )
         )
 
-    wb.save('./bot_ref/bot/reports/report.xlsx')
+    wb.save('report.xlsx')
 
-    file = FSInputFile('./bot_ref/bot/reports/report.xlsx')
+    file = FSInputFile('report.xlsx')
     await message.answer_document(file)
 
 
