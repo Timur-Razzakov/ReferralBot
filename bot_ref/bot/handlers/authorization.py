@@ -89,6 +89,7 @@ async def process_phone_number(message: types.Message, state: FSMContext):
             exists_phone_text,
             reply_markup=sign_inup_kb.markup
         )
+        return
 
     await message.answer(
         password_text,
