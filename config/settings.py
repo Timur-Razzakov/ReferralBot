@@ -22,13 +22,6 @@ TOKEN_API = config('BOT_TOKEN')
 ADMINS = config('ADMINS_ID')
 MAIN_ADMIN_ID = config('MAIN_ADMIN_ID')
 NOTIFICATION_GROUP_ID = config('NOTIFICATION_GROUP_ID')
-# binance
-BINANCE_SECRET = config('BINANCE_SECRET')
-API_KEY = config('API_KEY')
-
-# binance pay
-BINANCE_PAY_API_KEY = config('BINANCE_PAY_API_KEY')
-BINANCE_PAY_SECRET_KEY = config('BINANCE_PAY_SECRET_KEY')
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY')
