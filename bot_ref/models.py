@@ -19,6 +19,7 @@ class User(models.Model):
         'User',
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
         related_name='referrals',
         verbose_name='Кто пригласил'
     )
