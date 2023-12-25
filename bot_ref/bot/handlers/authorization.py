@@ -93,7 +93,7 @@ async def process_phone_number(message: types.Message, state: FSMContext):
         )
         return
 
-    if len(phone_number) > 12:
+    if len(phone_number) > 13:
         await message.answer(
             phone_number_length_error,
             reply_markup=registration_kb.markup
