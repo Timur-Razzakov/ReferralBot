@@ -93,18 +93,11 @@ async def process_phone_number(message: types.Message, state: FSMContext):
         )
         return
 
-    if len(phone_number) > 13:
-        await message.answer(
-            phone_number_length_error,
-            reply_markup=registration_kb.markup
-        )
-        await state.set_state(AuthState.phone_number)
-    else:
-        await message.answer(
-            password_text,
-            reply_markup=registration_kb.markup
-        )
-        await state.set_state(AuthState.user_password)
+    await message.answer(
+        password_text,
+        reply_markup=registration_kb.markup
+    )
+    await state.set_state(AuthState.user_password)
 
 
 @sign_up_router.message(AuthState.user_password)
